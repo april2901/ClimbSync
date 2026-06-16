@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ClimbSync - 클라이밍 일정 공유</title>
+  
+  <!-- Fonts: Google Fonts Outfit (English/Numbers) & Noto Sans KR (Korean) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+
+  <!-- Firebase SDK (Compat Version for Vanilla JS) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+  <!-- Lucide Icons for Premium UI Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-logo">
+        <i data-lucide="activity" class="logo-icon"></i>
+        <h1>ClimbSync</h1>
+        <span class="logo-subtitle">Climbing Schedule Share</span>
+      </div>
+      
+      <div class="header-controls">
+        <button id="share-btn" class="icon-btn" title="일정 링크 복사">
+          <i data-lucide="share-2"></i>
+          <span class="btn-text">링크 공유</span>
+        </button>
+        
+        <div id="auth-panel" class="auth-panel">
+          <!-- Auth content loaded dynamically by app.js -->
+          <button id="login-btn" class="login-btn">
+            <i data-lucide="log-in"></i>
+            <span>Google 로그인</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="app-main">
+      <!-- Welcome/Info Card -->
+      <section class="info-banner">
+        <div class="info-text">
+          <h2>🧗 나의 3주 클라이밍 일정</h2>
+          <p>이번 주와 앞으로의 2주간 일정을 공유합니다. 같이 운동 갈 시간대를 확인하고 댓글을 달아보세요! <span class="login-notice">(일정에 댓글을 달거나 동행 참여하려면 Google 로그인이 필요합니다.)</span></p>
+        </div>
+        <div class="legend">
+          <div class="legend-item"><span class="badge badge-climbing"></span><span>클라이밍 일정</span></div>
+          <div class="legend-item"><span class="badge badge-other"></span><span>다른 일정 (운동 불가)</span></div>
+        </div>
+      </section>
+
+      <!-- Calendar Weeks Section -->
+      <div id="weeks-container" class="weeks-container">
+        <!-- Week Columns: Generated Dynamically by app.js -->
+        <!-- Week 1: 이번 주 -->
+        <!-- Week 2: 다음 주 -->
+        <!-- Week 3: 다다음 주 -->
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>캘린더 일정을 불러오는 중입니다...</p>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <p>&copy; 2026 ClimbSync. Designed for Climbing Community.</p>
+    </footer>
+  </div>
+
+  <!-- MODAL 1: Admin Create / Edit Event Modal -->
+  <div id="event-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modal-title">일정 추가</h3>
+        <button class="close-modal-btn" data-modal="event-modal">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <form id="event-form" class="modal-form">
+        <input type="hidden" id="event-id">
+        
+        <div class="form-group">
+          <label>일정 유형</label>
+          <div class="type-selector">
+            <label class="type-option">
+              <input type="radio" name="event-type" value="climbing" checked>
+              <span class="type-box climbing-box">
+                <i data-lucide="map-pin"></i> 클라이밍
+              </span>
+            </label>
+            <label class="type-option">
+              <input type="radio" name="event-type" value="other">
+              <span class="type-box other-box">
+                <i data-lucide="calendar-off"></i> 다른 일정
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="event-date">날짜</label>
+          <input type="date" id="event-date" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="event-start-time">시작 시간</label>
+            <input type="time" id="event-start-time" value="18:00" required>
+          </div>
+          <div class="form-group">
+            <label for="event-end-time">종료 시간</label>
+            <input type="time" id="event-end-time" value="21:00" required>
+          </div>
+        </div>
+
+        <div id="gym-name-group" class="form-group">
+          <label id="event-gym-name-label" for="event-gym-name">클라이밍장 이름</label>
+          <input type="text" id="event-gym-name" placeholder="예: 더클라임 강남점, 볼더프렌즈" required>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" id="delete-event-btn" class="delete-btn hidden">
+            <i data-lucide="trash-2"></i> 삭제
+          </button>
+          <div class="footer-right">
+            <button type="button" class="cancel-btn" data-modal="event-modal">취소</button>
+            <button type="submit" class="submit-btn">저장</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 2: Comments / Detail Modal -->
+  <div id="comments-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="comments-modal-title">클라이밍 상세 계획</h3>
+        <button class="close-modal-btn" data-modal="comments-modal">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      
+      <div class="event-details-view">
+        <div class="detail-gym">
+          <i data-lucide="map-pin" class="detail-icon"></i>
+          <span id="detail-gym-name">-</span>
+        </div>
+        <div class="detail-time">
+          <i data-lucide="clock" class="detail-icon"></i>
+          <span id="detail-time-text">-</span>
+        </div>
+      </div>
+
+      <!-- Participants (Join) Section -->
+      <div id="participants-section" class="participants-section">
+        <div class="participants-header">
+          <h4>함께 가는 친구들 (<span id="participants-count">0</span>명)</h4>
+          <button id="join-btn" class="join-btn">
+            <i data-lucide="user-plus"></i> <span>나도 갈래!</span>
+          </button>
+        </div>
+        <div id="participants-list" class="participants-list">
+          <!-- Avatar list generated dynamically -->
+        </div>
+      </div>
+
+      <div class="comments-section">
+        <h4>댓글 (<span id="comments-count">0</span>)</h4>
+        <div id="comments-list" class="comments-list">
+          <!-- Comments generated dynamically by app.js -->
+        </div>
+
+        <form id="comment-form" class="comment-input-area hidden">
+          <img id="current-user-avatar" class="user-avatar" src="" alt="나의 아바타">
+          <input type="text" id="comment-text" placeholder="친구의 계획에 댓글을 남겨보세요..." required>
+          <button type="submit" class="comment-submit-btn">
+            <i data-lucide="send"></i>
+          </button>
+        </form>
+        
+        <div id="comment-login-promo" class="comment-login-promo">
+          <p>구글 계정으로 로그인하면 댓글을 남겨서 동행 참여를 알릴 수 있습니다.</p>
+          <button class="login-btn compact" id="comment-login-btn">
+            <i data-lucide="log-in"></i>
+            <span>Google 로그인</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Toast Notification -->
+  <div id="toast" class="toast hidden">
+    <span id="toast-message">알림 메시지</span>
+  </div>
+
+  <!-- Core App Logic -->
+  <script type="module" src="app.js"></script>
+</body>
+</html>
