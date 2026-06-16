@@ -697,6 +697,14 @@ function openCommentsModal(id) {
         comments.push({ id: doc.id, ...doc.data() });
       });
 
+      // Auto-healing comments count synchronization
+      const actualCount = comments.length;
+      const currentEvent = schedulesList.find(e => e.id === id);
+      if (currentEvent && currentEvent.commentCount !== actualCount) {
+        db.collection('schedules').doc(id).update({ commentCount: actualCount })
+          .catch(err => console.warn("Failed to auto-sync commentCount:", err));
+      }
+
       // Sort by creation date in memory (no indices required on DB side)
       comments.sort((a, b) => {
         const t1 = a.createdAt ? a.createdAt.toMillis() : Date.now();
@@ -795,14 +803,8 @@ function handleCommentFormSubmit(e) {
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   };
 
-  // 1. Add to comments collection
+  // Add to comments collection
   db.collection('comments').add(newComment)
-    .then(() => {
-      // 2. Increment commentCount in schedules collection
-      return db.collection('schedules').doc(activeScheduleId).update({
-        commentCount: firebase.firestore.FieldValue.increment(1)
-      });
-    })
     .catch((err) => {
       console.error("Add Comment Error:", err);
       showToast("댓글 저장에 실패했습니다.");
@@ -813,14 +815,6 @@ function handleCommentFormSubmit(e) {
 function deleteComment(commentId) {
   if (confirm("정말로 이 댓글을 삭제하시겠습니까?")) {
     db.collection('comments').doc(commentId).delete()
-      .then(() => {
-        if (activeScheduleId) {
-          // Decrement count
-          return db.collection('schedules').doc(activeScheduleId).update({
-            commentCount: firebase.firestore.FieldValue.increment(-1)
-          });
-        }
-      })
       .then(() => {
         showToast("댓글이 삭제되었습니다.");
       })
