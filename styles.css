@@ -2,23 +2,23 @@
 
 :root {
   /* Colors */
-  --bg-color: #0d1117;
-  --bg-deep: #090c10;
-  --card-bg: rgba(22, 27, 34, 0.6);
-  --card-border: rgba(240, 246, 252, 0.1);
-  --card-hover-border: rgba(240, 246, 252, 0.2);
+  --bg-color: #0e121a;
+  --bg-deep: #0a0d13;
+  --card-bg: rgba(26, 33, 46, 0.75);
+  --card-border: rgba(240, 246, 252, 0.12);
+  --card-hover-border: rgba(240, 246, 252, 0.22);
   
   --text-primary: #f0f6fc;
-  --text-secondary: #8b949e;
-  --text-muted: #484f58;
+  --text-secondary: #c9d1d9;
+  --text-muted: #8b949e;
   
   --color-climbing-start: #00f2fe;
   --color-climbing-end: #4facfe;
   --color-climbing-glow: rgba(79, 172, 254, 0.4);
   
-  --color-other-bg: rgba(255, 255, 255, 0.03);
-  --color-other-border: rgba(255, 255, 255, 0.08);
-  --color-other-text: #8b949e;
+  --color-other-bg: rgba(255, 255, 255, 0.08);
+  --color-other-border: rgba(255, 255, 255, 0.16);
+  --color-other-text: #c9d1d9;
   
   --color-admin-start: #d946ef;
   --color-admin-end: #8b5cf6;
@@ -439,8 +439,8 @@ body {
 .day-card {
   border-radius: var(--border-radius-md);
   padding: 14px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -448,8 +448,8 @@ body {
 }
 
 .day-card:hover {
-  background: rgba(255, 255, 255, 0.03);
-  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 .day-card.today {
@@ -569,9 +569,9 @@ body {
 
 /* Climbing Event Item */
 .event-item.climbing {
-  background: linear-gradient(135deg, rgba(0, 242, 254, 0.08), rgba(79, 172, 254, 0.08));
-  border: 1px solid rgba(0, 242, 254, 0.25);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  background: linear-gradient(135deg, rgba(0, 242, 254, 0.12), rgba(79, 172, 254, 0.12));
+  border: 1px solid rgba(0, 242, 254, 0.35);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .event-item.climbing:hover {
@@ -690,11 +690,12 @@ body {
 }
 
 .other .event-time {
-  color: var(--text-secondary);
+  color: var(--color-other-text);
+  opacity: 0.95;
 }
 
 .other .event-title {
-  color: var(--text-secondary);
+  color: var(--color-other-text);
   font-weight: 500;
   display: flex;
   align-items: center;
